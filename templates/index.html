@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Assistant by HexVortex000</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Advanced AI Assistant</h1>
+    <p>Ask via text or voice (microphone required).</p>
+    <form id="queryForm">
+        <textarea id="textInput" name="text_input" placeholder="Ask something..."></textarea>
+        <br>
+        <button type="button" onclick="submitQuery('text')">Submit Text</button>
+        <button type="button" onclick="submitQuery('voice')">Use Voice</button>
+    </form>
+    <div id="response"></div>
+    <script>
+        function submitQuery(inputType) {
+            let formData = new FormData();
+            formData.append('input_type', inputType);
+            if (inputType === 'text') {
+                formData.append('text_input', document.getElementById('textInput').value);
+            }
+            fetch('/query', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerHTML = `
+                    <p><strong>You:</strong> ${data.input}</p>
+                    <p><strong>AI:</strong> ${data.response}</p>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
