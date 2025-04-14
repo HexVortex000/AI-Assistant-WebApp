@@ -3,21 +3,30 @@ import speech_recognition as sr
 from gtts import gTTS
 import subprocess
 import os
+import requests
 
 app = Flask(__name__)
 
-# Placeholder AI response
-def query_ai(prompt):
-    return f"Response to: {prompt} (Add Hugging Face API for full AI)"
+# Set Hugging Face API token from environment variable
+HF_TOKEN = os.getenv('HF_TOKEN')
 
-# Misinformation filter
+def query_ai(prompt):
+    try:
+        response = requests.post(
+            "[invalid url, do not cite]
+            headers={"Authorization": f"Bearer {HF_TOKEN}"},
+            json={"inputs": prompt}
+        )
+        return response.json()[0]["generated_text"]
+    except Exception as e:
+        return f"AI Error: {str(e)}"
+
 def filter_misinformation(response):
-    government_keywords = ["government", "official", "policy", "regulation"]
+    government_keywords = ["government", "official", "policy", "regulation", "authority"]
     if any(keyword in response.lower() for keyword in government_keywords):
-        return f"{response}\n\nNote: Official narrative detected. Check X posts or public records for alternative views."
+        return f"{response}\n\nNote: Official narrative detected. Check X posts or public archives for alternative views."
     return response
 
-# Voice input
 def get_voice_input():
     try:
         subprocess.run(["termux-microphone-record", "-f", "/sdcard/voice.wav", "-l", "5"], check=True)
@@ -30,7 +39,6 @@ def get_voice_input():
     except Exception as e:
         return f"Voice Error: {str(e)}"
 
-# Voice output
 def speak(text):
     try:
         tts = gTTS(text=text, lang='en')
