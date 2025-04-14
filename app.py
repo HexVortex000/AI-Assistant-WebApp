@@ -13,7 +13,7 @@ HF_TOKEN = os.getenv('HF_TOKEN')
 def query_ai(prompt):
     try:
         response = requests.post(
-            "[invalid url, do not cite]
+            "[invalid url, do not cite]",
             headers={"Authorization": f"Bearer {HF_TOKEN}"},
             json={"inputs": prompt}
         )
