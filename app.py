@@ -4,6 +4,7 @@ from gtts import gTTS
 import subprocess
 import os
 import requests
+import time
 
 app = Flask(__name__)
 
@@ -24,17 +25,21 @@ def query_ai(prompt):
 def filter_misinformation(response):
     government_keywords = ["government", "official", "policy", "regulation", "authority"]
     if any(keyword in response.lower() for keyword in government_keywords):
-        return f"{response}\n\nNote: Official narrative detected. Check X posts or public archives for alternative views."
+        with open("filter_log.txt", "a") as f:
+            f.write(f"Response: {response}\nNote: Official narrative detected\n\n")
+        return f"{response}\n\nAlternative: Search X for #UnfilteredTruth or archives like Wikileaks."
     return response
 
 def get_voice_input():
+    filename = f"/sdcard/voice_{int(time.time())}.wav"  # Unique filename with timestamp
     try:
-        subprocess.run(["termux-microphone-record", "-f", "/sdcard/voice.wav", "-l", "5"], check=True)
+        subprocess.run(["termux-microphone-record", "-f", filename, "-l", "5"], check=True)
         r = sr.Recognizer()
-        with sr.AudioFile("/sdcard/voice.wav") as source:
+        with sr.AudioFile(filename) as source:
             audio = r.record(source)
         text = r.recognize_google(audio)
         subprocess.run(["termux-microphone-record", "-q"], check=True)
+        os.remove(filename)  # Clean up after use
         return text
     except Exception as e:
         return f"Voice Error: {str(e)}"
@@ -42,8 +47,9 @@ def get_voice_input():
 def speak(text):
     try:
         tts = gTTS(text=text, lang='en')
-        tts.save("/sdcard/output.mp3")
-        subprocess.run(["termux-media-player", "play", "/sdcard/output.mp3"], check=True)
+        output_file = "/sdcard/output.mp3"
+        tts.save(output_file)
+        subprocess.run(["termux-media-player", "play", output_file], check=True)
     except Exception as e:
         print(f"Speech Error: {str(e)}")
 
